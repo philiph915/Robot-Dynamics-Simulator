@@ -2,7 +2,7 @@
 #include <Eigen/Dense>
 #include "MathUtils.h"
 
-class Link {
+struct Link {
 
 public:
 
@@ -13,20 +13,22 @@ float ddq_i = 0.0f;   // joint acceleration
 
 // Mass props
 float mass = 1.0f;
-Eigen::Matrix3f I_com   = Eigen::Matrix3f::Identity();
-Eigen::Vector3f r_cg    = Eigen::Vector3f::Zero();   // Vector from link origin to link COM 
-Eigen::Vector3f r_i_1   = Eigen::Vector3f::Zero();   // Vector from link origin to link 1+i origin
-Eigen::Vector3f r_1_cg  = Eigen::Vector3f::Zero();  // Vector from link i+1 origin to link i COM
+Eigen::Matrix3f I_com   = Eigen::Matrix3f::Identity();  // Inertia tensor about the link COM
+Eigen::Vector3f r_cg    = Eigen::Vector3f::Zero();      // Vector from link origin to link COM 
+Eigen::Vector3f r_i_1   = Eigen::Vector3f::Zero();      // Vector from link origin to link 1+i origin
+Eigen::Vector3f r_1_cg  = Eigen::Vector3f::Zero();      // Vector from link i+1 origin to link i COM
 
 // Position and orientation
-Eigen::Vector3f position = Eigen::Vector3f::Zero(); // absolute position
+Eigen::Vector3f position = Eigen::Vector3f::Zero();       // absolute position of link i origin in world coordinates
 Eigen::Matrix3f R_1_i    = Eigen::Matrix3f::Identity();   // R_i+1 to i
+Eigen::Matrix3f R_i      = Eigen::Matrix3f::Identity();   // R_i-1 to i
+Eigen::Matrix3f R_0_i    = Eigen::Matrix3f::Identity();   // Absolute position, i.e. rotation from frame 0 to i
 
 // Velocities
 Eigen::Vector3f omega_i = Eigen::Vector3f::Zero(); // angular velocity of link i
 
 // Accelerations
-Eigen::Vector3f alpha_i = Eigen::Vector3f::Zero(); // angular acceleration of link i
+Eigen::Vector3f alpha_i = Eigen::Vector3f::Zero();   // angular acceleration of link i
 Eigen::Vector3f a_ci    = Eigen::Vector3f::Zero();   // linear acceleration of link i COM
 Eigen::Vector3f a_ei    = Eigen::Vector3f::Zero();   // linear acceleration of the end of link i
 

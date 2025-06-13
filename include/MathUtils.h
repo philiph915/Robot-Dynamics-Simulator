@@ -1,4 +1,5 @@
 #include <Eigen/Dense>
+#include <cmath>
 
 namespace utils {
 
@@ -17,6 +18,9 @@ namespace utils {
 
     // Skew symmetry and cross-products
     Eigen::Matrix3f skewSymmetric(const Eigen::Vector3f &v);
+
+    // Conversions
+    float Deg2Rad(float deg);
 
     // Spatial transforms and spatial inertia
     Matrix6f spatialTransformTwist(Eigen::Matrix3f R_ab, Eigen::Vector3f p_ab);

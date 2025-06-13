@@ -44,6 +44,11 @@ Eigen::Matrix3f utils::skewSymmetric(const Eigen::Vector3f& v)
     return S;
 }
 
+float utils::Deg2Rad(float deg)
+{
+    return deg * M_PI / 180;
+}
+
 // Joint subspace for revolute joint about z axis
 utils::Vector6f utils::unitTwist_revoluteZ()
 {
