@@ -1,6 +1,7 @@
 // main.cpp
 #include <iostream>
 #include <Eigen/Dense>
+#include "raylib.h"
 
 int main() {
     // Define a 2x2 matrix of doubles
@@ -28,6 +29,18 @@ int main() {
     } else {
         std::cout << "Matrix is not invertible." << std::endl;
     }
+
+    InitWindow(800, 600, "Robot Dynamics Simulator - Test Window");
+
+    while (!WindowShouldClose())
+    {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        DrawText("Hello, Raylib!", 190, 200, 20, LIGHTGRAY);
+        EndDrawing();
+    }
+
+    CloseWindow();
 
     return 0;
 }
