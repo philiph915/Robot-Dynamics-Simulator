@@ -8,53 +8,69 @@ Robot::Robot()
 
 void Robot::InitLinks()
 {
-    Link link1;
-    link1.r_cg << 25, 0, 0;
-    link1.r_i_1 <<50, 0, 0;
-    link1.r_1_cg = link1.r_i_1 - link1.r_cg;
-    link1.q_i = utils::Deg2Rad(30);
-    AddLink(link1);
+    Link defaultLink;
+    Link newLink;
+    
+    newLink = defaultLink;
+    newLink.linkNumber = 1;
+    newLink.position << 40, 40, 0; //set first link origin WRT base frame
+    newLink.r_cg << 0, 0, 0;
+    newLink.r_i_1 << 40, 0, 0;
+    newLink.r_1_cg = newLink.r_i_1 - newLink.r_cg;
+    newLink.q_i = utils::Deg2Rad(45);
+    newLink.alpha = utils::Deg2Rad(-90);
+    AddLink(newLink);
 
-    Link link2;
-    link2.r_cg << 25, 0, 0;
-    link2.r_i_1 << 50, 0, 0;
-    link2.r_1_cg = link2.r_i_1 - link2.r_cg;
-    link2.q_i = utils::Deg2Rad(-50);
-    AddLink(link2);
+    newLink = defaultLink;
+    newLink.linkNumber = 2;
+    newLink.r_cg << 25, 0, 0;
+    newLink.r_i_1 << 50, 0, 0;
+    newLink.r_1_cg = newLink.r_i_1 - newLink.r_cg;
+    newLink.q_i = utils::Deg2Rad(-45);
+    AddLink(newLink);
+
+    newLink = defaultLink;
+    newLink.linkNumber = 3;
+    newLink.r_cg << 25, 0, 0;
+    newLink.r_i_1 << 50, 0, 0;
+    newLink.r_1_cg = newLink.r_i_1 - newLink.r_cg;
+    newLink.q_i = utils::Deg2Rad(0);
+    AddLink(newLink);
 
 }
 
 // Calculate all rotation matrices and positions
 void Robot::ForwardKinematics()
 {
-    // Calculate link 1
-    links[0].R_0_i = utils::rotZ(links[0].q_i);
-    links[0].R_i   = utils::rotZ(links[0].q_i);
-    links[0].position = Eigen::Vector3f::Zero();
-
-    // shift the link 1 origin off the world origin
-    links[0].position << 40, 0, 40;
-
-    // std::cout<< "Link " << 0 << std::endl;
-    // std::cout<<links[0].position<<std::endl;
-    // std::cout<<links[0].R_0_i<<std::endl;
-    // std::cout<< "q " << links[0].q_i*57.3 << std::endl;
-
     // Loop across links in the chain
-    for (int ii = 1; ii < links.size(); ii++) {
-        links[ii].R_i = utils::rotZ(links[ii].q_i); // rotation from link i-1 to i
+    for (int ii = 0; ii < links.size(); ii++) {
+        
+        // get alpha from the parent link
+        float alpha;
+        if (ii == 0) {
+            alpha = 0; //no alpha from base frame
+        } else {
+            alpha = links[ii-1].alpha;
+        }
 
-        // Get the parent link
+        // Rotation from i-1 to i: Rz(q_i) * Rx(alpha) (follows MDH conventions)
+        Eigen::Matrix3f Rz = utils::rotZ(links[ii].q_i);
+        Eigen::Matrix3f Rx = utils::rotX(alpha);
+        links[ii].R_i = Rx * Rz;
+
+        PrintJointState(links[ii]);
+
+        // Special case for first link: previous frame is base frame
+        if (ii==0) { 
+            links[ii].R_0_i = links[ii].R_i;
+            continue; 
+        }
+
+        // Get the parent link in order to calculate absolute position and orientation
         Link& parent = links[ii-1];
-        // parent.R_1_i = links[ii].R_i.transpose(); // rotation from i+1 to i (update for the parent link)
 
         links[ii].R_0_i = parent.R_0_i * links[ii].R_i; // absolute orientation (relative to base) of link i
-        links[ii].position = parent.position + (parent.R_i * parent.r_i_1); // absolute position of link i
-
-        // std::cout<< "Link " << ii << std::endl;
-        // std::cout<<links[ii].R_0_i<<std::endl;
-        // std::cout<<links[ii].position<<std::endl;
-        // std::cout<< "q " << links[ii].q_i*57.3 << std::endl;
+        links[ii].position = parent.position + (parent.R_0_i * parent.r_i_1); // absolute position of link i
     }
 }
 
@@ -67,35 +83,10 @@ void Robot::Render()
 
     for (size_t i = 0; i < links.size(); ++i)
     {
-        Link& current = links[i];
+        // Render each link
+        links[i].Render();
 
-        // Convert Eigen::Vector3f to raylib Vector3
-        Vector3 pos = {
-            current.position(0),
-            current.position(1),
-            current.position(2)
-        };
-
-        // Draw a sphere at the origin of the link
-        DrawSphere(pos, sphereRadius, jointColor);
-
-        // If not the last link, draw a line to the next link
-        if (i < links.size() - 1)
-        {
-            Link& next = links[i+1];
-            Vector3 nextPos = { next.position(0), next.position(1), next.position(2) };
-
-            DrawLine3D(pos, nextPos, linkColor);
-        }
-        // Draw the last link 
-        else 
-        {
-            Eigen::Vector3f nextPos_eigen = current.position + current.R_0_i*current.r_i_1;
-            Vector3 nextPos = {nextPos_eigen(0), nextPos_eigen(1), nextPos_eigen(2)};
-            DrawLine3D(pos, nextPos, linkColor);
-            // Draw a sphere at the end of the last link
-            DrawSphere(nextPos, sphereRadius, GREEN);
-        }
+        // Render a sphere at the end effector
     }
 }
 
@@ -104,3 +95,27 @@ void Robot::AddLink(const Link& link)
     links.push_back(link);
 }
 
+void Robot::PrintJointState(const Link& link)
+{
+    std::cout << "Link " << link.linkNumber << ":" << std::endl << std::endl;
+    std::cout << "position: " << std::endl << link.position << std::endl << std::endl;
+    std::cout << "q" << link.linkNumber << " = " << utils::Rad2Deg(link.q_i) << " degrees" << std::endl<< std::endl;
+    std::cout << "R" << link.linkNumber <<": "<<std::endl << link.R_i << std::endl << std::endl;
+    std::cout << "R0_" << link.linkNumber <<": "<<std::endl << link.R_0_i << std::endl << std::endl;
+    std::cout << "Z axis for Link " << link.linkNumber << ": " << link.R_0_i.col(2).transpose() << "\n\n";
+    std::cout << "alpha" << link.linkNumber << " = " << utils::Rad2Deg(link.alpha) << " degrees" << std::endl << std::endl;
+
+
+
+}
+// scraps: print states
+
+// std::cout<< "Link " << 0 << std::endl;
+// std::cout<<links[0].position<<std::endl;
+// std::cout<<links[0].R_0_i<<std::endl;
+// std::cout<< "q " << links[0].q_i*57.3 << std::endl;
+
+// std::cout<< "Link " << ii << std::endl;
+// std::cout<<links[ii].R_0_i<<std::endl;
+// std::cout<<links[ii].position<<std::endl;
+// std::cout<< "q " << links[ii].q_i*57.3 << std::endl;

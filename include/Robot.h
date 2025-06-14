@@ -15,6 +15,7 @@ void InitLinks();
 void ForwardKinematics();
 void Render();
 void AddLink(const Link& link);
+void PrintJointState(const Link &link);
 
 private:
 
