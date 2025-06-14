@@ -1,10 +1,17 @@
 #pragma once
 #include <Eigen/Dense>
 #include "MathUtils.h"
+#include "raylib.h"
+#include "CameraUtils.h"
 
-struct Link {
+class Link {
 
 public:
+
+void Render();
+void DrawLocalAxes();
+
+int linkNumber = 0;   // used to identify link's position in the chain
 
 // Joint states
 float q_i   = 0.0f;   // joint angle (position)
@@ -23,6 +30,7 @@ Eigen::Vector3f position = Eigen::Vector3f::Zero();       // absolute position o
 Eigen::Matrix3f R_1_i    = Eigen::Matrix3f::Identity();   // R_i+1 to i
 Eigen::Matrix3f R_i      = Eigen::Matrix3f::Identity();   // R_i-1 to i
 Eigen::Matrix3f R_0_i    = Eigen::Matrix3f::Identity();   // Absolute position, i.e. rotation from frame 0 to i
+float alpha              = 0.0f;                          // From DH parameters: rotation offset about x-axis 
 
 // Velocities
 Eigen::Vector3f omega_i = Eigen::Vector3f::Zero(); // angular velocity of link i
