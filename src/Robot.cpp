@@ -18,7 +18,7 @@ void Robot::InitLinks()
     newLink.r_i_1 << 40, 0, 0;
     newLink.r_1_cg = newLink.r_i_1 - newLink.r_cg;
     newLink.q_i = utils::Deg2Rad(45);
-    newLink.alpha = utils::Deg2Rad(-90);
+    newLink.alpha = utils::Deg2Rad(90);
     AddLink(newLink);
 
     newLink = defaultLink;
@@ -78,16 +78,19 @@ void Robot::Render()
 {
      // Set some constants for drawing
     float sphereRadius = 5.0f;
-    Color linkColor = RED;
-    Color jointColor = BLUE;
+    Color EEcolor    = RED;
 
     for (size_t i = 0; i < links.size(); ++i)
     {
         // Render each link
         links[i].Render();
-
-        // Render a sphere at the end effector
     }
+
+    // Render a sphere at the end effector
+    Link& endLink = links[links.size()-1];
+    Eigen::Vector3f EE_pos_eigen = endLink.position + endLink.R_0_i * endLink.r_i_1;
+    Vector3 EEpos = {EE_pos_eigen(0), EE_pos_eigen(1), EE_pos_eigen(2)};
+    DrawSphere(EEpos,sphereRadius,EEcolor);
 }
 
 void Robot::AddLink(const Link& link)

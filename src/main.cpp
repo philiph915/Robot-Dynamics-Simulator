@@ -38,9 +38,9 @@ int main() {
 
         // Sinusiodal joint motion
         float totalTime = GetTime();
-        // robot.links[0].q_i = utils::Deg2Rad(45); //0.5*totalTime;
-        // robot.links[1].q_i = utils::Deg2Rad(90); //utils::Deg2Rad(20*sin(2*totalTime)+90);
-        // robot.links[2].q_i = utils::Deg2Rad(45); //utils::Deg2Rad(50*sin(3*totalTime));
+        robot.links[0].q_i = utils::Deg2Rad(50*totalTime);
+        robot.links[1].q_i = utils::Deg2Rad(50*sin(2*totalTime)+90);
+        robot.links[2].q_i = utils::Deg2Rad(50*sin(3*totalTime));
 
 
         robot.ForwardKinematics();
