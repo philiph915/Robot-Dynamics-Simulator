@@ -4,16 +4,17 @@ void Link::Render() {
 
     // Set some constants for drawing
     float sphereRadius = 5.0f;
-    Color linkColor = RED;
+    Color linkColor = PURPLE;
     Color jointColor = BLUE;
 
     // Convert Eigen::Vector3f to raylib Vector3
     Vector3 pos = {position(0), position(1), position(2)};
 
-    // Eigen::Vector3f nextPos_eigen = position + R_0_i*r_i_1;
-    // Vector3 nextPos = {nextPos_eigen(0), nextPos_eigen(1), nextPos_eigen(2)};
+    Eigen::Vector3f nextPos_eigen = position + R_0_i*r_i_1;
+    Vector3 nextPos = {nextPos_eigen(0), nextPos_eigen(1), nextPos_eigen(2)};
     
     // Draw a line along the link axis
+    CameraUtils::DrawCylinderBetween(pos,nextPos,2.5f,linkColor,10);
     // DrawLine3D(pos, nextPos, linkColor);
 
     // Draw a sphere at the origin of the link
@@ -55,10 +56,5 @@ void Link::DrawLocalAxes()
     DrawLine3D(pos, x_draw, RED);
     DrawLine3D(pos, y_draw, GREEN);
     DrawLine3D(pos, z_draw, BLUE);
-
-
-    // CameraUtils::DrawThickAxis(pos, x_draw, RED, 0.10f);   // X axis
-    // CameraUtils::DrawThickAxis(pos, y_draw, RED, 0.10f);   // Y axis
-    // CameraUtils::DrawThickAxis(pos, z_draw, RED, 0.10f);   // Z axis
 
 }
