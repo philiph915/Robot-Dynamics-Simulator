@@ -9,15 +9,15 @@ void CameraUtils::UpdateFreeCamera(Camera3D *cam, float zoomSpeed, float rotateS
     }
     if (IsKeyPressed(KEY_TWO)) { // XZ plane
         cam->position = (Vector3){ 0, 500, 0 };
-        cam->up = (Vector3){ 0, 0, -1 };
+        cam->up = (Vector3){ 0, 0, 1 };
         cam->fovy     = 300; 
     }
     if (IsKeyPressed(KEY_THREE)) { // YZ plane
         cam->position = (Vector3){ 500, 0, 0 };
-        cam->up = (Vector3){ 0, 1, 0 };
+        cam->up = (Vector3){ 0, 0, 1 };
         cam->fovy     = 300; 
     }
-    if (IsKeyPressed(KEY_ZERO)) { // Return to starting position
+    if (IsKeyPressed(KEY_ZERO) || IsKeyPressed(KEY_SPACE)) { // Return to starting position
         cam->position = (Vector3){ 200.0f, 200.0f, 200.0f }; // Camera position in world space
         cam->target   = (Vector3){ 0.0f, 0.0f, 0.0f };      // What the camera is looking at
         cam->up       = (Vector3){ 0.0f, 0.0f, 1.0f };      // Which way is "up"

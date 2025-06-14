@@ -30,21 +30,25 @@ int main() {
         BeginDrawing();
         BeginMode3D(camera); // Start 3D drawing
         ClearBackground(RAYWHITE);
-        CameraUtils::DrawXYGrid(20, 10.0f);
 
+        // Draw grid and world frame axes
+        CameraUtils::DrawXYGrid(20, 10.0f);
         CameraUtils::DrawThickAxis((Vector3){0,0,0}, (Vector3){100,0,0}, RED, 2.0f);   // X axis
         CameraUtils::DrawThickAxis((Vector3){0,0,0}, (Vector3){0,100,0}, GREEN, 2.0f); // Y axis
         CameraUtils::DrawThickAxis((Vector3){0,0,0}, (Vector3){0,0,100}, BLUE, 2.0f);  // Z axis
 
-        // Sinusiodal joint motion
+        // Apply sinusiodal joint motion
         float totalTime = GetTime();
-        robot.links[0].q_i = utils::Deg2Rad(50*totalTime);
-        robot.links[1].q_i = utils::Deg2Rad(50*sin(2*totalTime)+90);
-        robot.links[2].q_i = utils::Deg2Rad(50*sin(3*totalTime));
+        robot.links[0].q_i = utils::Deg2Rad(45*sin(1*totalTime)+45);  //utils::Deg2Rad(20*totalTime);
+        robot.links[1].q_i = utils::Deg2Rad(30*sin(3*totalTime)+90);
+        robot.links[2].q_i = utils::Deg2Rad(40*sin(2*totalTime)-75);
 
-
+        // Update joint states
         robot.ForwardKinematics();
+        
+        // Render robot graphics
         robot.Render();
+
         EndMode3D(); // End 3D drawing
 
         // Draw UI text

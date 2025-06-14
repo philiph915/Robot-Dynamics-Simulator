@@ -15,7 +15,7 @@ void Robot::InitLinks()
     newLink.linkNumber = 1;
     newLink.position << 40, 40, 0; //set first link origin WRT base frame
     newLink.r_cg << 0, 0, 0;
-    newLink.r_i_1 << 40, 0, 0;
+    newLink.r_i_1 << 20, 0, 0;
     newLink.r_1_cg = newLink.r_i_1 - newLink.r_cg;
     newLink.q_i = utils::Deg2Rad(45);
     newLink.alpha = utils::Deg2Rad(90);
