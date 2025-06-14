@@ -21,6 +21,7 @@ namespace utils {
 
     // Conversions
     float Deg2Rad(float deg);
+    float Rad2Deg(float rad);
 
     // Spatial transforms and spatial inertia
     Matrix6f spatialTransformTwist(Eigen::Matrix3f R_ab, Eigen::Vector3f p_ab);

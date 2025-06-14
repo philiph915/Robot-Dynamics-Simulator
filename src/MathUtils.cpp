@@ -49,6 +49,11 @@ float utils::Deg2Rad(float deg)
     return deg * M_PI / 180;
 }
 
+float utils::Rad2Deg(float rad)
+{
+    return rad * 180 / M_PI;
+}
+
 // Joint subspace for revolute joint about z axis
 utils::Vector6f utils::unitTwist_revoluteZ()
 {
