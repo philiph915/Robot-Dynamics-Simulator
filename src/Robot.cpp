@@ -39,39 +39,60 @@ void Robot::InitLinks()
 
 }
 
-// Calculate all rotation matrices and positions
+std::vector<float> Robot::GetJointAngles() const {  // add const here to indicate this is a read-only operation
+    std::vector<float> q;
+    for (const Link& link : links) {
+        q.push_back(link.q_i);
+    }
+    return q;
+}
+
+
+// Update robot positions and rotation matrices via forward kinematics 
 void Robot::ForwardKinematics()
 {
-    // Loop across links in the chain
-    for (int ii = 0; ii < links.size(); ii++) {
+    // Update link positions and rotation matrices using current joint angles
+    links = ComputeForwardKinematics(GetJointAngles());
+
+    // Debugging: Print joint states
+    if (0) {
+        for (const Link& link : links) {
+            PrintJointState(link);
+        }
+    }
+}
+
+// Calculate all rotation matrices and positions
+std::vector<Link> Robot::ComputeForwardKinematics(const std::vector<float> &q)
+{
+    std::vector<Link> newLinks = links; // Start from current link structure (copy joint metadata, alpha, r_i_1, etc.)
+
+     // Loop across links in the chain
+    for (int ii = 0; ii < newLinks.size(); ii++) {
         
         // get alpha from the parent link
         float alpha;
         if (ii == 0) {
             alpha = 0; //no alpha from base frame
         } else {
-            alpha = links[ii-1].alpha;
+            alpha = newLinks[ii-1].alpha;
         }
 
         // Rotation from i-1 to i: Rz(q_i) * Rx(alpha) (follows MDH conventions)
-        Eigen::Matrix3f Rz = utils::rotZ(links[ii].q_i);
+        Eigen::Matrix3f Rz = utils::rotZ(newLinks[ii].q_i);
         Eigen::Matrix3f Rx = utils::rotX(alpha);
-        links[ii].R_i = Rx * Rz;
-
-        PrintJointState(links[ii]);
-
-        // Special case for first link: previous frame is base frame
-        if (ii==0) { 
-            links[ii].R_0_i = links[ii].R_i;
-            continue; 
-        }
+        newLinks[ii].R_i = Rx * Rz;
 
         // Get the parent link in order to calculate absolute position and orientation
-        Link& parent = links[ii-1];
-
-        links[ii].R_0_i = parent.R_0_i * links[ii].R_i; // absolute orientation (relative to base) of link i
-        links[ii].position = parent.position + (parent.R_0_i * parent.r_i_1); // absolute position of link i
+        if (ii==0) { 
+            newLinks[ii].R_0_i = newLinks[ii].R_i; // Special case for first link: previous frame is the base frame, so R_0_i is R_i
+        } else {
+            Link& parent = newLinks[ii-1];
+            newLinks[ii].R_0_i = parent.R_0_i * newLinks[ii].R_i; // absolute orientation (relative to base) of link i
+            newLinks[ii].position = parent.position + (parent.R_0_i * parent.r_i_1); // absolute position of link i
+        }
     }
+    return newLinks;
 }
 
 void Robot::Render()
