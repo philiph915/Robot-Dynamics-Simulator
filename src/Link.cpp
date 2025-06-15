@@ -33,9 +33,9 @@ Eigen::Vector3f Link::GetEndOfLink() {
 void Link::DrawLocalAxes()
 {
      Vector3 pos = {position(0), position(1), position(2)};
-     Eigen::Vector3f worldX;         Eigen::Vector3f localX;
-     Eigen::Vector3f worldY;         Eigen::Vector3f localY;
-     Eigen::Vector3f worldZ;         Eigen::Vector3f localZ;
+     Eigen::Vector3f worldX;   Eigen::Vector3f localX;
+     Eigen::Vector3f worldY;   Eigen::Vector3f localY;
+     Eigen::Vector3f worldZ;   Eigen::Vector3f localZ;
      Eigen::Vector3f world_x_axis_moved;
      Eigen::Vector3f world_y_axis_moved;
      Eigen::Vector3f world_z_axis_moved;

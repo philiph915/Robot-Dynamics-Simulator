@@ -9,15 +9,20 @@ class Robot {
 
 public:
 
-std::vector<Link> links;
+// Functions
 Robot();
+
 void InitLinks();
-std::vector<float> GetJointAngles() const;
 void ForwardKinematics();
-std::vector<Link> ComputeForwardKinematics(const std::vector<float>& q);
 void Render();
 void AddLink(const Link& link);
 void PrintJointState(const Link &link);
+
+std::vector<Link> ComputeForwardKinematics(const std::vector<float>& q);
+std::vector<float> GetJointAngles() const;
+
+// Properties
+std::vector<Link> links;
 
 private:
 

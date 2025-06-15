@@ -12,12 +12,11 @@ int main() {
 
     // Define a camera
     Camera3D camera = { 0 };
-    camera.position = (Vector3){ 200.0f, 200.0f, 200.0f }; // Camera position in world space
-    camera.target   = (Vector3){ 0.0f, 0.0f, 0.0f };      // What the camera is looking at
-    camera.up       = (Vector3){ 0.0f, 0.0f, 1.0f };      // Which way is "up"
-    camera.fovy     = 300;                             // Field of view (vertical) in degrees
+    camera.position = (Vector3){ 200.0f, 200.0f, 200.0f };  // Camera position in world space
+    camera.target   = (Vector3){ 0.0f, 0.0f, 0.0f };        // What the camera is looking at
+    camera.up       = (Vector3){ 0.0f, 0.0f, 1.0f };        // Which way is "up"
+    camera.fovy     = 300;                                  // Field of view (vertical) in degrees
     camera.projection = CAMERA_ORTHOGRAPHIC;
-
 
     InitWindow(800, 600, "Robot Dynamics Simulator - Test Window");
 
