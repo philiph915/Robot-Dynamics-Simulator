@@ -6,6 +6,7 @@ Robot::Robot()
     InitLinks();
 }
 
+// Configure robot properties (Modified DH Convention)
 void Robot::InitLinks()
 {
     Link defaultLink;
@@ -39,6 +40,7 @@ void Robot::InitLinks()
 
 }
 
+// Helper function to get the vector of joint angles
 std::vector<float> Robot::GetJointAngles() const {  // add const here to indicate this is a read-only operation
     std::vector<float> q;
     for (const Link& link : links) {
@@ -99,7 +101,7 @@ void Robot::Render()
 {
      // Set some constants for drawing
     float sphereRadius = 5.0f;
-    Color EEcolor    = RED;
+    Color EEcolor    = RED;     // color of the end-effector
 
     for (size_t i = 0; i < links.size(); ++i)
     {
@@ -109,8 +111,7 @@ void Robot::Render()
 
     // Render a sphere at the end effector
     Link& endLink = links[links.size()-1];
-    Eigen::Vector3f EE_pos_eigen = endLink.position + endLink.R_0_i * endLink.r_i_1;
-    Vector3 EEpos = {EE_pos_eigen(0), EE_pos_eigen(1), EE_pos_eigen(2)};
+    Vector3 EEpos = utils::ConvertEigen2Raylib_Vector3(endLink.GetEndOfLink());
     DrawSphere(EEpos,sphereRadius,EEcolor);
 }
 
@@ -119,6 +120,7 @@ void Robot::AddLink(const Link& link)
     links.push_back(link);
 }
 
+// Function to print state variables of the input link
 void Robot::PrintJointState(const Link& link)
 {
     std::cout << "Link " << link.linkNumber << ":" << std::endl << std::endl;
@@ -128,9 +130,6 @@ void Robot::PrintJointState(const Link& link)
     std::cout << "R0_" << link.linkNumber <<": "<<std::endl << link.R_0_i << std::endl << std::endl;
     std::cout << "Z axis for Link " << link.linkNumber << ": " << link.R_0_i.col(2).transpose() << "\n\n";
     std::cout << "alpha" << link.linkNumber << " = " << utils::Rad2Deg(link.alpha) << " degrees" << std::endl << std::endl;
-
-
-
 }
 // scraps: print states
 

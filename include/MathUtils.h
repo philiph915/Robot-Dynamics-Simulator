@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <cmath>
+#include "raylib.h"
 
 namespace utils {
 
@@ -22,6 +23,7 @@ namespace utils {
     // Conversions
     float Deg2Rad(float deg);
     float Rad2Deg(float rad);
+    Vector3 ConvertEigen2Raylib_Vector3(Eigen::Vector3f vector_Eigen);
 
     // Spatial transforms and spatial inertia
     Matrix6f spatialTransformTwist(Eigen::Matrix3f R_ab, Eigen::Vector3f p_ab);

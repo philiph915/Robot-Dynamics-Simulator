@@ -7,11 +7,11 @@ void Link::Render() {
     Color linkColor = PURPLE;
     Color jointColor = BLUE;
 
-    // Convert Eigen::Vector3f to raylib Vector3
-    Vector3 pos = {position(0), position(1), position(2)};
+    // Get the link origin as a raylib Vector3 object
+    Vector3 pos = utils::ConvertEigen2Raylib_Vector3(position);
 
-    Eigen::Vector3f nextPos_eigen = position + R_0_i*r_i_1;
-    Vector3 nextPos = {nextPos_eigen(0), nextPos_eigen(1), nextPos_eigen(2)};
+    // Get the end of the link as a raylib Vector3 object 
+    Vector3 nextPos = utils::ConvertEigen2Raylib_Vector3(GetEndOfLink());
     
     // Draw a line along the link axis
     CameraUtils::DrawCylinderBetween(pos,nextPos,2.5f,linkColor,10);
@@ -22,6 +22,12 @@ void Link::Render() {
 
     DrawLocalAxes();
 
+}
+
+// Get the position of the end of the input link object
+Eigen::Vector3f Link::GetEndOfLink() {
+    Eigen::Vector3f linkEnd = position + R_0_i*r_i_1;
+    return linkEnd;
 }
 
 void Link::DrawLocalAxes()

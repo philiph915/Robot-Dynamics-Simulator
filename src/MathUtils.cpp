@@ -54,6 +54,11 @@ float utils::Rad2Deg(float rad)
     return rad * 180 / M_PI;
 }
 
+Vector3 utils::ConvertEigen2Raylib_Vector3(Eigen::Vector3f vector_Eigen)
+{
+    return Vector3{vector_Eigen(0), vector_Eigen(1), vector_Eigen(2)};
+}
+
 // Joint subspace for revolute joint about z axis
 utils::Vector6f utils::unitTwist_revoluteZ()
 {

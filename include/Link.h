@@ -10,6 +10,7 @@ public:
 
 void Render();
 void DrawLocalAxes();
+Eigen::Vector3f GetEndOfLink();
 
 int linkNumber = 0;   // used to identify link's position in the chain
 
