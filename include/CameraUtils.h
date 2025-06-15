@@ -12,4 +12,5 @@ namespace CameraUtils {
     void DrawThickAxis(Vector3 start, Vector3 end, Color color, float thickness);
     void DrawCylinderBetween(Vector3 pos, Vector3 endPos, float radius, Color color, int slices);
     void DrawXYGrid(int slices, float spacing);
+    void PrintOrbitOrientation();
 }

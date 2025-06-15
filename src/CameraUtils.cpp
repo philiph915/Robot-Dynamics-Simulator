@@ -1,4 +1,5 @@
 #include "CameraUtils.h"
+#include <iostream>
 
 // Persistent orbit‐camera state 
 static Quaternion orbitOrientation = { 0 };
@@ -9,7 +10,8 @@ void CameraUtils::InitOrbitCameraQuat(Vector3 target, float distance)
 {
     orbitTarget   = target;
     orbitDistance = distance;
-    orbitOrientation = QuaternionIdentity();   // “look along +X” initially
+    orbitOrientation = {0.0925058, -0.226331, 0.366871, 0.897615};
+    //QuaternionIdentity();   // “look along +X” initially
 }
 
 void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed)
@@ -61,6 +63,9 @@ void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float 
     cam->position = Vector3Add(orbitTarget, offset);
     cam->target   = orbitTarget;
     cam->up       = cameraUp;
+
+    // Debugging: Print the quaternion orientation
+    PrintOrbitOrientation();
 }
 
 void CameraUtils::UpdateFreeCamera(Camera3D *cam, float zoomSpeed, float rotateSpeed)
@@ -216,4 +221,13 @@ void CameraUtils::DrawXYGrid(int slices, float spacing)
     }
 }
 
-
+void CameraUtils::PrintOrbitOrientation()
+{
+    std::cout
+    << "Orbit Orientation — "
+    << "x: " << orbitOrientation.x << ", "
+    << "y: " << orbitOrientation.y << ", "
+    << "z: " << orbitOrientation.z << ", "
+    << "w: " << orbitOrientation.w
+    << std::endl;
+}
