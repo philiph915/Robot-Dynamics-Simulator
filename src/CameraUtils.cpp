@@ -1,5 +1,68 @@
 #include "CameraUtils.h"
 
+// Persistent orbit‐camera state 
+static Quaternion orbitOrientation = { 0 };
+static Vector3    orbitTarget      = { 0, 0, 0 };
+static float      orbitDistance    = 200.0f;
+
+void CameraUtils::InitOrbitCameraQuat(Vector3 target, float distance)
+{
+    orbitTarget   = target;
+    orbitDistance = distance;
+    orbitOrientation = QuaternionIdentity();   // “look along +X” initially
+}
+
+void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed)
+{
+    // — YAW around world Z —
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
+    {
+        Quaternion q = QuaternionFromAxisAngle((Vector3){0,0,1}, +rotateSpeed);
+        orbitOrientation = QuaternionMultiply(q, orbitOrientation);
+    }
+    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
+    {
+        Quaternion q = QuaternionFromAxisAngle((Vector3){0,0,1}, -rotateSpeed);
+        orbitOrientation = QuaternionMultiply(q, orbitOrientation);
+    }
+
+    // — COMPUTE LOCAL AXES —
+    Vector3 forward  = Vector3Normalize(Vector3RotateByQuaternion((Vector3){1,0,0}, orbitOrientation));
+    Vector3 cameraUp = Vector3Normalize(Vector3RotateByQuaternion((Vector3){0,0,1}, orbitOrientation));
+    Vector3 right    = Vector3Normalize(Vector3CrossProduct(cameraUp, forward));
+
+    // — PITCH around camera‐local right —
+    if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))
+    {
+        Quaternion q = QuaternionFromAxisAngle(right, +rotateSpeed);
+        orbitOrientation = QuaternionMultiply(q, orbitOrientation);
+    }
+    if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN))
+    {
+        Quaternion q = QuaternionFromAxisAngle(right, -rotateSpeed);
+        orbitOrientation = QuaternionMultiply(q, orbitOrientation);
+    }
+
+    // — ZOOM by FOV only —
+    float dt     = GetFrameTime();
+    float scroll = GetMouseWheelMove();
+
+    if (IsKeyDown(KEY_Q)) cam->fovy -= zoomSpeed * dt;
+    if (IsKeyDown(KEY_E)) cam->fovy += zoomSpeed * dt;
+    if (scroll != 0.0f)   cam->fovy -= scroll * zoomSpeed * 0.05f;
+
+    // Clamp the FOV to avoid extreme distortion
+    cam->fovy = Clamp(cam->fovy, 10.0f, 600.0f);
+
+    // — UPDATE CAMERA POSITION + UP —
+    Vector3 baseOffset = { orbitDistance, 0, 0 };
+    Vector3 offset     = Vector3RotateByQuaternion(baseOffset, orbitOrientation);
+
+    cam->position = Vector3Add(orbitTarget, offset);
+    cam->target   = orbitTarget;
+    cam->up       = cameraUp;
+}
+
 void CameraUtils::UpdateFreeCamera(Camera3D *cam, float zoomSpeed, float rotateSpeed)
 {
     if (IsKeyPressed(KEY_ONE)) { // XY plane

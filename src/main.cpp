@@ -18,13 +18,16 @@ int main() {
     camera.fovy     = 300;                                  // Field of view (vertical) in degrees
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
+    CameraUtils::InitOrbitCameraQuat((Vector3){ 0, 0, 0 }, 500.0f);
+
     InitWindow(800, 600, "Robot Dynamics Simulator - Test Window");
 
     Robot robot = Robot();
 
     while (!WindowShouldClose())
     {
-        CameraUtils::UpdateFreeCamera(&camera, 5.0f, 0.01f);
+        // CameraUtils::UpdateFreeCamera(&camera, 5.0f, 0.01f);
+        CameraUtils::UpdateOrbitCameraQuat(&camera, 0.002f, 300.0f);
 
         BeginDrawing();
         BeginMode3D(camera); // Start 3D drawing

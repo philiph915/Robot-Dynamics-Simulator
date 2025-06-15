@@ -5,6 +5,8 @@
 #include <algorithm>
 
 namespace CameraUtils {
+    void InitOrbitCameraQuat(Vector3 initialTarget, float initialDistance); 
+    void UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed);
     void UpdateFreeCamera(Camera3D* cam, float moveSpeed, float rotateSpeed);
     void UpdateOrbitCamera(Camera3D *cam, float rotateSpeed, float zoomSpeed);
     void DrawThickAxis(Vector3 start, Vector3 end, Color color, float thickness);
