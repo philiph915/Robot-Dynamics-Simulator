@@ -25,7 +25,7 @@ void CameraUtils::UpdateFreeCamera(Camera3D *cam, float zoomSpeed, float rotateS
     }
 
 
-    CameraUtils::UpdateOrbitCamera(cam, rotateSpeed*3, zoomSpeed*60);
+    CameraUtils::UpdateOrbitCamera(cam, rotateSpeed/20, zoomSpeed*100);
 
     // Mouse rotation (hold right mouse button)
     if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
@@ -74,14 +74,19 @@ void CameraUtils::UpdateOrbitCamera(Camera3D* cam, float rotateSpeed = 0.02f, fl
         offset = Vector3Transform(offset, rotPitch);
     }
 
-    // Handle zoom (Q = in, E = out)
-    if (IsKeyDown(KEY_Q)) {
-        cam->fovy -= zoomSpeed * GetFrameTime(); // Zoom in
-        cam->fovy = std::max(1.0f,cam->fovy);
+     if (IsKeyDown(KEY_Q)) {
+        cam->fovy -= zoomSpeed * GetFrameTime();
+        cam->fovy = std::max(10.0f, cam->fovy);
     }
     if (IsKeyDown(KEY_E)) {
-        cam->fovy += zoomSpeed * GetFrameTime(); // Zoom out
-        cam->fovy = std::min(600.0f,cam->fovy);
+        cam->fovy += zoomSpeed * GetFrameTime();
+        cam->fovy = std::min(600.0f, cam->fovy);
+    }
+
+    float scroll = GetMouseWheelMove();
+    if (scroll != 0.0f) {
+        cam->fovy -= scroll * zoomSpeed * 0.05f;
+        cam->fovy = std::clamp(cam->fovy, 10.0f, 600.0f);
     }
 
     cam->position = Vector3Add(cam->target, offset);

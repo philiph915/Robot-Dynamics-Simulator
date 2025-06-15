@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
+#include <algorithm>
 
 namespace CameraUtils {
     void UpdateFreeCamera(Camera3D* cam, float moveSpeed, float rotateSpeed);
