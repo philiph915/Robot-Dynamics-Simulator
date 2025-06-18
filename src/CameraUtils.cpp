@@ -6,28 +6,23 @@ static Quaternion orbitOrientation = { 0 };
 static Vector3    orbitTarget      = { 0, 0, 0 };
 static float      orbitDistance    = 500.0f;
 
-void CameraUtils::InitOrbitCameraQuat()
+void CameraUtils::InitOrbitCameraQuat(Camera3D &camera)
 {
-    // orbitTarget   = target;
-    // orbitDistance = distance;
+    // Use hard-coded values for initial orientation and field of view
     orbitOrientation = {0.0925058, -0.226331, 0.366871, 0.897615};
+    camera.fovy     = 300; 
 
+    // Calculate an analytical quaternion to get to the desired camera angle (THIS DOESN'T WORK)
     // Vector3 camPos  = { 200.0f, -200.0f, 200.0f };
     // Vector3 target  = { 0.0f, 0.0f, 0.0f };
     // Vector3 up      = { 0.0f, 0.0f, 1.0f };
-
-    // // // 1) Build the view matrix (world → camera)
+    // // 1) Build the view matrix (world → camera)
     // Matrix view = MatrixLookAt(camPos, target, up);
-    // // // 2) Invert it to get the camera’s world-space transform
+    // // 2) Invert it to get the camera’s world-space transform
     // Matrix transform = MatrixInvert(view);
-    // // // 3) Extract the rotation quaternion
+    // // 3) Extract the rotation quaternion
     // orbitOrientation = QuaternionFromMatrix(transform);
 
-}
-
-Quaternion CameraUtils::GetCameraOrientation(const Vector3& camPos, const Vector3& target, const Vector3& worldUp)
-{
-    return {0};
 }
 
 void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed)
@@ -44,12 +39,12 @@ void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float 
         orbitOrientation = QuaternionMultiply(q, orbitOrientation);
     }
 
-    // — COMPUTE LOCAL AXES —
+    // COMPUTE LOCAL AXES 
     Vector3 forward  = Vector3Normalize(Vector3RotateByQuaternion((Vector3){1,0,0}, orbitOrientation));
     Vector3 cameraUp = Vector3Normalize(Vector3RotateByQuaternion((Vector3){0,0,1}, orbitOrientation));
     Vector3 right    = Vector3Normalize(Vector3CrossProduct(cameraUp, forward));
 
-    // — PITCH around camera‐local right —
+    // PITCH around camera‐local right 
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP))
     {
         Quaternion q = QuaternionFromAxisAngle(right, +rotateSpeed);
@@ -61,7 +56,7 @@ void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float 
         orbitOrientation = QuaternionMultiply(q, orbitOrientation);
     }
 
-    // — ZOOM by FOV only —
+    // ZOOM by FOV only
     float dt     = GetFrameTime();
     float scroll = GetMouseWheelMove();
 
@@ -80,108 +75,59 @@ void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float 
     cam->target   = orbitTarget;
     cam->up       = cameraUp;
 
-    float time = GetTime();
-    if (std::fmod(time, 1.0f) < dt) {
+    // Debug Print
+    if (0) {
+        float time = GetTime();
+        if (std::fmod(time, 1.0f) < dt) {
+            // Debugging: Print the quaternion orientation
+            PrintOrbitOrientation();
 
-    
-    // Debugging: Print the quaternion orientation
-    PrintOrbitOrientation();
-
-    // UpdateFreeCamera(cam, zoomSpeed, rotateSpeed);
-    std::cout << "cam pos: " << cam->position.x <<"," << cam->position.y <<"," << cam->position.z << std::endl;
+            // UpdateFreeCamera(cam, zoomSpeed, rotateSpeed);
+            std::cout << "cam pos: " << cam->position.x <<"," << cam->position.y <<"," << cam->position.z << std::endl;
+        }
     }
 }
 
-void CameraUtils::UpdateFreeCamera(Camera3D *cam, float zoomSpeed, float rotateSpeed)
+void CameraUtils::UpdateFreeCameraQuat(Camera3D* cam, float zoomSpeed, float rotateSpeed)
 {
-    if (IsKeyPressed(KEY_ONE)) { // XY plane
-        cam->position = (Vector3){ 0, 0, 500 };
-        cam->up = (Vector3){ 0, 1, 0 };
-        cam->fovy     = 300; 
+    // Snap views — adjust orbitOrientation and orbitDistance
+    if (IsKeyPressed(KEY_ONE)) { // XY plane (Z up)
+        Quaternion yaw = QuaternionFromAxisAngle((Vector3){0,0,1}, -PI/2);  // rotate -90° about Z  (Gets to XZ Plane)
+        Quaternion pitch = QuaternionFromAxisAngle((Vector3){1,0,0},-PI/2); // rotate 90° about X  (Gets to XY Plane)
+        Quaternion q = QuaternionMultiply(pitch,yaw);                       // Combine rotations
+        orbitOrientation = q;
+        std::cout << "Snapped to XY plane" << std::endl;
     }
-    if (IsKeyPressed(KEY_TWO)) { // XZ plane
-        cam->position = (Vector3){ 0, 500, 0 };
-        cam->up = (Vector3){ 0, 0, 1 };
-        cam->fovy     = 300; 
+    if (IsKeyPressed(KEY_TWO)) { // YZ plane (Z up)
+        orbitOrientation = QuaternionFromAxisAngle((Vector3){0,0,1}, 0); // look down +X
+        std::cout << "Snapped to YZ plane" << std::endl;
     }
-    if (IsKeyPressed(KEY_THREE)) { // YZ plane
-        cam->position = (Vector3){ 500, 0, 0 };
-        cam->up = (Vector3){ 0, 0, 1 };
-        cam->fovy     = 300; 
+    if (IsKeyPressed(KEY_THREE)) { // XZ plane (Z up)
+        Quaternion q = QuaternionFromAxisAngle((Vector3){0,0,1}, -PI/2); // rotate -90° about Z  (Gets to XZ Plane)
+        orbitOrientation = q;
+        std::cout << "Snapped to XZ plane" << std::endl;
     }
-    if (IsKeyPressed(KEY_ZERO) || IsKeyPressed(KEY_SPACE)) { // Return to starting position
-        cam->position = (Vector3){ 200.0f, 200.0f, 200.0f }; // Camera position in world space
-        cam->target   = (Vector3){ 0.0f, 0.0f, 0.0f };      // What the camera is looking at
-        cam->up       = (Vector3){ 0.0f, 0.0f, 1.0f };      // Which way is "up"
-        cam->fovy     = 300; 
+    if (IsKeyPressed(KEY_ZERO) || IsKeyPressed(KEY_SPACE)) { // Reset to diag view
+        InitOrbitCameraQuat(*cam);
+        std::cout << "Reset view" << std::endl;
     }
 
-
-    CameraUtils::UpdateOrbitCamera(cam, rotateSpeed/20, zoomSpeed*100);
-
-    // Mouse rotation (hold right mouse button)
+    // Mouse drag to rotate
     if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
     {
         Vector2 delta = GetMouseDelta();
+        float yaw   = -delta.x * rotateSpeed*5;
+        float pitch = -delta.y * rotateSpeed*5;
 
-        float angleYaw   = -delta.x * rotateSpeed;
-        float anglePitch = delta.y * rotateSpeed;
+        Quaternion qYaw   = QuaternionFromAxisAngle((Vector3){0,0,1}, yaw); // world Z
+        Vector3 camRight  = Vector3Normalize(Vector3RotateByQuaternion((Vector3){0,1,0}, orbitOrientation)); // local right
+        Quaternion qPitch = QuaternionFromAxisAngle(camRight, pitch);
 
-        // Simple rotation around target
-        Vector3 offset = Vector3Subtract(cam->position, cam->target);
-
-        Matrix matYaw = MatrixRotateZ(angleYaw);
-        Matrix matPitch = MatrixRotateX(anglePitch);
-
-        // Apply yaw first, then pitch
-        offset = Vector3Transform(offset, matYaw);
-        offset = Vector3Transform(offset, matPitch);
-
-        cam->position = Vector3Add(cam->target, offset);
-    }
-}
-
-void CameraUtils::UpdateOrbitCamera(Camera3D* cam, float rotateSpeed = 0.02f, float zoomSpeed = 2.0f)
-{
-    Vector3 offset = Vector3Subtract(cam->position, cam->target);
-
-    // Handle rotation around Z axis (Yaw)
-    if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {
-        Matrix rotZ = MatrixRotateZ(-rotateSpeed);
-        offset = Vector3Transform(offset, rotZ);
-    }
-    if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {
-        Matrix rotZ = MatrixRotateZ(rotateSpeed);
-        offset = Vector3Transform(offset, rotZ);
+        orbitOrientation = QuaternionMultiply(qPitch, QuaternionMultiply(qYaw, orbitOrientation));
     }
 
-    // Handle pitch rotation around X axis (in camera-local plane)
-    Vector3 right = Vector3Normalize(Vector3CrossProduct((Vector3){0, 0, 1}, offset));
-    if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {
-        Matrix rotPitch = MatrixRotate(right, rotateSpeed);
-        offset = Vector3Transform(offset, rotPitch);
-    }
-    if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)) {
-        Matrix rotPitch = MatrixRotate(right, -rotateSpeed);
-        offset = Vector3Transform(offset, rotPitch);
-    }
-
-     if (IsKeyDown(KEY_Q)) {
-        cam->fovy -= zoomSpeed * GetFrameTime();
-        cam->fovy = std::max(10.0f, cam->fovy);
-    }
-    if (IsKeyDown(KEY_E)) {
-        cam->fovy += zoomSpeed * GetFrameTime();
-        cam->fovy = std::min(600.0f, cam->fovy);
-    }
-
-    float scroll = GetMouseWheelMove();
-    if (scroll != 0.0f) {
-        cam->fovy -= scroll * zoomSpeed * 0.05f;
-        cam->fovy = std::clamp(cam->fovy, 10.0f, 600.0f);
-    }
-
-    cam->position = Vector3Add(cam->target, offset);
+    // Call the orbit camera update to apply changes
+    UpdateOrbitCameraQuat(cam, rotateSpeed, zoomSpeed);
 }
 
 void CameraUtils::DrawThickAxis(Vector3 start, Vector3 end, Color color, float thickness)
