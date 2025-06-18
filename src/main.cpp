@@ -18,7 +18,7 @@ int main() {
     camera.fovy     = 300;                                  // Field of view (vertical) in degrees
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
-    CameraUtils::InitOrbitCameraQuat((Vector3){ 0, 0, 0 }, 500.0f);
+    CameraUtils::InitOrbitCameraQuat();
 
     InitWindow(800, 600, "Robot Dynamics Simulator - Test Window");
 

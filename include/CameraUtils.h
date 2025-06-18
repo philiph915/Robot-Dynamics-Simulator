@@ -3,9 +3,12 @@
 #include "raymath.h"
 #include "rlgl.h"
 #include <algorithm>
+#include <cmath>
 
 namespace CameraUtils {
-    void InitOrbitCameraQuat(Vector3 initialTarget, float initialDistance); 
+    void InitOrbitCameraQuat();
+    Quaternion GetCameraOrientation(const Vector3 &camPos, const Vector3 &target, const Vector3 &worldUp);
+
     void UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed);
     void UpdateFreeCamera(Camera3D* cam, float moveSpeed, float rotateSpeed);
     void UpdateOrbitCamera(Camera3D *cam, float rotateSpeed, float zoomSpeed);

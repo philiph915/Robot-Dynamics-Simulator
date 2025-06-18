@@ -4,14 +4,30 @@
 // Persistent orbit‐camera state 
 static Quaternion orbitOrientation = { 0 };
 static Vector3    orbitTarget      = { 0, 0, 0 };
-static float      orbitDistance    = 200.0f;
+static float      orbitDistance    = 500.0f;
 
-void CameraUtils::InitOrbitCameraQuat(Vector3 target, float distance)
+void CameraUtils::InitOrbitCameraQuat()
 {
-    orbitTarget   = target;
-    orbitDistance = distance;
+    // orbitTarget   = target;
+    // orbitDistance = distance;
     orbitOrientation = {0.0925058, -0.226331, 0.366871, 0.897615};
-    //QuaternionIdentity();   // “look along +X” initially
+
+    // Vector3 camPos  = { 200.0f, -200.0f, 200.0f };
+    // Vector3 target  = { 0.0f, 0.0f, 0.0f };
+    // Vector3 up      = { 0.0f, 0.0f, 1.0f };
+
+    // // // 1) Build the view matrix (world → camera)
+    // Matrix view = MatrixLookAt(camPos, target, up);
+    // // // 2) Invert it to get the camera’s world-space transform
+    // Matrix transform = MatrixInvert(view);
+    // // // 3) Extract the rotation quaternion
+    // orbitOrientation = QuaternionFromMatrix(transform);
+
+}
+
+Quaternion CameraUtils::GetCameraOrientation(const Vector3& camPos, const Vector3& target, const Vector3& worldUp)
+{
+    return {0};
 }
 
 void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed)
@@ -64,8 +80,16 @@ void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float 
     cam->target   = orbitTarget;
     cam->up       = cameraUp;
 
+    float time = GetTime();
+    if (std::fmod(time, 1.0f) < dt) {
+
+    
     // Debugging: Print the quaternion orientation
     PrintOrbitOrientation();
+
+    // UpdateFreeCamera(cam, zoomSpeed, rotateSpeed);
+    std::cout << "cam pos: " << cam->position.x <<"," << cam->position.y <<"," << cam->position.z << std::endl;
+    }
 }
 
 void CameraUtils::UpdateFreeCamera(Camera3D *cam, float zoomSpeed, float rotateSpeed)
