@@ -27,6 +27,11 @@ void CameraUtils::InitOrbitCameraQuat(Camera3D &camera)
 
 void CameraUtils::UpdateOrbitCameraQuat(Camera3D* cam, float rotateSpeed, float zoomSpeed)
 {
+    float rotateSpeed_standard = rotateSpeed;
+    if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT))
+    {
+        rotateSpeed = rotateSpeed_standard*2;
+    }
     // — YAW around world Z —
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
     {
