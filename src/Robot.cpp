@@ -49,6 +49,14 @@ std::vector<float> Robot::GetJointAngles() const {  // add const here to indicat
     return q;
 }
 
+std::vector<float> Robot::GetJointVelocities() const
+{
+    std::vector<float> dq;
+    for (const Link& link : links) {
+        dq.push_back(link.dq_i);
+    }
+    return dq;
+}
 
 // Update robot positions and rotation matrices via forward kinematics 
 void Robot::ForwardKinematics()
@@ -94,6 +102,52 @@ std::vector<Link> Robot::ComputeForwardKinematics(const std::vector<float> &q)
             newLinks[ii].position = parent.position + (parent.R_0_i * parent.r_i_1); // absolute position of link i
         }
     }
+    return newLinks;
+}
+
+// Calculate link linear/angular velocities + update spatial velocity vectors
+std::vector<Link> Robot::ComputeLinkVelocities(const std::vector<float> &q, const std::vector<float> &dq )
+{
+    std::vector<Link> newLinks = links; // Start from current link structure 
+
+        // Loop across links in the chain; Calculate linear velocity of each link's CoM and origin
+        for (int ii = 0; ii < newLinks.size(); ii++) {
+
+            Link& link = newLinks[ii];
+            
+            // Get link angular velocity in the local frame
+            Eigen::Vector3f omega_local;
+            omega_local << 0,0,link.dq_i;
+
+            // Transform link angular velocity to the world frame
+            link.omega_i = link.R_0_i * omega_local;
+
+            if (ii==0) {
+                
+                // base link: origin does not have linear velocity
+                link.v_origin = Eigen::Vector3f::Zero();
+            
+            } else {
+                
+                // otherwise: get data from parent link
+                const Link& parent = newLinks[ii-1];
+                Eigen::Vector3f r_i_1 = parent.R_0_i * parent.r_i_1; // vector from the parent origin to the child origin, expressed in world coordinates
+
+                // omega cross r
+                Eigen::Vector3f cross_term = parent.omega_i.cross(r_i_1);
+
+                // link origin velocity
+                link.v_origin = parent.v_origin + cross_term;
+            }
+
+            // compute linear velocity of CoM
+            link.v_ci = link.v_origin + link.omega_i.cross(link.r_cg);
+
+            // Populate 6D spatial velocity
+            link.v_i.head<3>() = link.omega_i;
+            link.v_i.tail<3>() = link.v_origin;
+        }
+
     return newLinks;
 }
 

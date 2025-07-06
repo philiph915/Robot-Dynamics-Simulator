@@ -33,13 +33,16 @@ Eigen::Matrix3f R_i      = Eigen::Matrix3f::Identity();   // R_i-1 to i
 Eigen::Matrix3f R_0_i    = Eigen::Matrix3f::Identity();   // Absolute position, i.e. rotation from frame 0 to i
 float alpha              = 0.0f;                          // From DH parameters: rotation offset about x-axis 
 
-// Velocities
-Eigen::Vector3f omega_i = Eigen::Vector3f::Zero(); // angular velocity of link i
+// Velocities (world frame)
+Eigen::Vector3f omega_i  = Eigen::Vector3f::Zero();   // angular velocity of link i 
+Eigen::Vector3f v_ci     = Eigen::Vector3f::Zero();   // linear velocity of link i COM
+Eigen::Vector3f v_origin = Eigen::Vector3f::Zero();   // linear velocity of link i origin
 
-// Accelerations
-Eigen::Vector3f alpha_i = Eigen::Vector3f::Zero();   // angular acceleration of link i
-Eigen::Vector3f a_ci    = Eigen::Vector3f::Zero();   // linear acceleration of link i COM
-Eigen::Vector3f a_ei    = Eigen::Vector3f::Zero();   // linear acceleration of the end of link i
+// Accelerations (world frame)
+Eigen::Vector3f alpha_i  = Eigen::Vector3f::Zero();   // angular acceleration of link i
+Eigen::Vector3f a_ci     = Eigen::Vector3f::Zero();   // linear acceleration of link i COM
+Eigen::Vector3f a_ei     = Eigen::Vector3f::Zero();   // linear acceleration of the end of link i
+Eigen::Vector3f a_origin = Eigen::Vector3f::Zero();   // linear acceleration of link i origin
 
 // Forces and Torques
 Eigen::Vector3f g_i      = Eigen::Vector3f::Zero(); // gravity force acting on link i
