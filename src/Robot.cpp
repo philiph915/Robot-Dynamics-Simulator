@@ -58,11 +58,31 @@ std::vector<float> Robot::GetJointVelocities() const
     return dq;
 }
 
-// Update robot positions and rotation matrices via forward kinematics 
-void Robot::ForwardKinematics()
+std::vector<float> Robot::GetJointAccelerations() const
 {
+    std::vector<float> ddq;
+    for (const Link& link : links) {
+        ddq.push_back(link.ddq_i);
+    }
+    return ddq;
+}
+
+// Update robot positions, rotation matrices, velocities, & accelerations via forward kinematics functions
+void Robot::UpdateKinematics()
+{
+    // Get joint states
+    std::vector<float> q = GetJointAngles();
+    std::vector<float> dq = GetJointVelocities();
+    std::vector<float> ddq = GetJointAccelerations();
+    
     // Update link positions and rotation matrices using current joint angles
     links = ComputeForwardKinematics(GetJointAngles());
+
+    // Update link velocities
+    links = ComputeLinkVelocities(q, dq);
+
+    // Update link accelerations
+    links = ComputeLinkAccelerations(q, dq, ddq);
 
     // Debugging: Print joint states
     if (0) {
@@ -110,7 +130,13 @@ std::vector<Link> Robot::ComputeLinkVelocities(const std::vector<float> &q, cons
 {
     std::vector<Link> newLinks = links; // Start from current link structure 
 
-        // Loop across links in the chain; Calculate linear velocity of each link's CoM and origin
+    // Sync joint values with input vectors
+    for (int i = 0; i < newLinks.size(); ++i) {
+        newLinks[i].q_i   = q[i];
+        newLinks[i].dq_i  = dq[i];
+    }
+
+        // Loop across links in the chain - calculate linear velocity of each link's CoM and origin
         for (int ii = 0; ii < newLinks.size(); ii++) {
 
             Link& link = newLinks[ii];
@@ -146,6 +172,64 @@ std::vector<Link> Robot::ComputeLinkVelocities(const std::vector<float> &q, cons
             // Populate 6D spatial velocity
             link.v_i.head<3>() = link.omega_i;
             link.v_i.tail<3>() = link.v_origin;
+        }
+
+    return newLinks;
+}
+
+// Calculate link linear/angular accelerations + update spatial acceleration vectors
+std::vector<Link> Robot::ComputeLinkAccelerations(const std::vector<float> &q, const std::vector<float> &dq, const std::vector<float> &ddq)
+{
+    std::vector<Link> newLinks = links; // Start from current link structure 
+
+        // Sync joint values with input vectors
+        for (int i = 0; i < newLinks.size(); ++i) {
+            newLinks[i].q_i   = q[i];
+            newLinks[i].dq_i  = dq[i];
+            if (ddq.size() > i) newLinks[i].ddq_i = ddq[i]; 
+        }
+
+        // Loop across links in the chain; Calculate linear velocity of each link's CoM and origin
+        for (int ii = 0; ii < newLinks.size(); ii++) {
+
+            Link& link = newLinks[ii];
+
+             // Get link angular acceleration in the local frame
+            Eigen::Vector3f alpha_local(0,0,link.ddq_i);
+
+            // Transform link angular acceleration to the world frame
+            link.alpha_i = link.R_0_i * alpha_local;
+
+            if (ii==0) {
+                
+                // base link: apply gravity in world frame
+                link.a_origin = -Eigen::Vector3f(0, 0, 9.81f);
+            
+            } else {
+                
+                // otherwise: get data from parent link
+                const Link& parent = newLinks[ii-1];
+                Eigen::Vector3f r_i_1 = parent.R_0_i * parent.r_i_1; // vector from the parent origin to the child origin, expressed in world coordinates
+
+                // populate angular acceleration
+                link.alpha_i = parent.alpha_i + parent.omega_i.cross(link.omega_i);
+
+                // link origin linear acceleration
+                link.a_origin = parent.a_origin + parent.alpha_i.cross(r_i_1)
+                            + parent.omega_i.cross(parent.omega_i.cross(r_i_1));
+            }
+
+            // Transform r_cg into world frame
+            Eigen::Vector3f r_cg_world = link.R_0_i * link.r_cg;
+
+            // Acceleration of center of mass
+            link.a_ci = link.a_origin
+                        + link.alpha_i.cross(r_cg_world)
+                        + link.omega_i.cross(link.omega_i.cross(r_cg_world));
+
+            // Populate 6D spatial acceleration
+            link.a_i.head<3>() = link.alpha_i;
+            link.a_i.tail<3>() = link.a_origin;
         }
 
     return newLinks;

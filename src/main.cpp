@@ -46,7 +46,7 @@ int main() {
         robot.links[2].q_i = utils::Deg2Rad(40*sin(2*totalTime)-75);
 
         // Update joint states
-        robot.ForwardKinematics();
+        robot.UpdateKinematics();
         
         // Render robot graphics
         robot.Render();
